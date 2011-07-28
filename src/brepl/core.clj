@@ -40,25 +40,12 @@
   (swap! namespaces assoc-in [*cljs-ns* :requires ns-alias] goog-ns)
   (server/send-js (str "goog.require(\"" (name goog-ns) "\")")))
 
-(defn browser-repl-env
-  "Returns a fresh JS environment, suitable for passing to repl.
-  Hang on to return for use across repl calls."
-  []
-  (let [jse (-> (javax.script.ScriptEngineManager.) (.getEngineByName "JavaScript"))
-        base (io/resource "goog/base.js")
-        deps (io/resource "goog/deps.js")
-        new-repl-env {:jse jse :global (.eval jse "this")}]
-    (assert base "Can't find goog/base.js in classpath")
-    (assert deps "Can't find goog/deps.js in classpath")
-    (.put jse javax.script.ScriptEngine/FILENAME "goog/base.js")
-    (.put jse "cljs_javascript_engine" new-repl-env)
-    (with-open [r (io/reader base)]
-      (.eval jse r))
-    (.eval jse bootjs)
-    ;; Load deps.js line-by-line to avoid 64K method limit
-    (doseq [^String line (line-seq (io/reader deps))]
-      (.eval jse line))
-    new-repl-env))
+(defn try-read []
+  (try
+    (read)
+    (catch Throwable ex
+      (.printStackTrace ex)
+      (println (str ex)))))
 
 (defn execute-repl [repl-env verbose warn-on-undeclared]
   (println "Repl connected. Let's do this.")
@@ -72,14 +59,16 @@
       (loop []
         (print (str "brepl :: " *cljs-ns* " :: "))
         (flush)
-        (let [form (read)]
+        (let [form (try-read)]
           (cond
-           (= form :cljs/quit) (do 
-                                 (server/stop-repl-server)
-                                 :quit)
-           
-           (and (seq? form) (= (first form) 'in-ns))
-           (do (set! *cljs-ns* (second (second form))) (newline) (recur))
+            (nil? form) (recur)
+
+            (= form :cljs/quit) (do 
+                                  (server/stop-repl-server)
+                                  :quit)
+
+            (and (seq? form) (= (first form) 'in-ns))
+            (do (set! *cljs-ns* (second (second form))) (newline) (recur))
 
             (and (seq? form) (= (first form) 'list-ns))
             (do (println @namespaces) (newline) (recur))
@@ -87,18 +76,18 @@
             (and (seq? form) (= (first form) 'require))
             (let [req (second form)
                   req (if (vector? req)
-                          req
-                          (second req))]
+                        req
+                        (second req))]
               (do (browser-require req) (recur)))
 
-           (and (seq? form) ('#{load-file clojure.core/load-file} (first form)))
-           (do (load-file repl-env (second form)) (newline) (recur))
-           
-           :else
+            (and (seq? form) ('#{load-file clojure.core/load-file} (first form)))
+            (do (load-file repl-env (second form)) (newline) (recur))
+
+            :else
             (let [ret (browser-eval1 repl-env
                                      (assoc env :ns (@namespaces *cljs-ns*))
                                      form)]
-             (recur))))))))
+              (recur))))))))
 
 (defn browser-repl
   "Note - repl will reload core.cljs every time, even if supplied old repl-env"
