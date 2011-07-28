@@ -1,18 +1,18 @@
-# brepl
+# Brepl
 
-The Clojure script browser repl.
+The Clojure Script browser repl.
 
 ## Usage
 
-'''bash
+```bash
 lein deps
-'''
+```
 
 In ./brepl make sure your CLOJURESCRIPT_HOME is set to wherever clojurescript is on your macine.
 
-'''
+```bash
 ./brepl
-'''
+```
 
 Then just open the included index.html in a browser that supports websockets (only tested in chrome so far).
 Results are printed to the browser's console, so make sure you have it open.
