@@ -2,16 +2,17 @@
 
 The Clojure Script browser repl.
 
+## Requirements
+
+* You have to have ClojureScript on your machine and ready to use (you called script/bootstrap)
+* You have rlwrap installed (you can technically do without this if you modify ./brepl)
+
 ## Usage
+
+Edit ./brepl to set your CLOJURESCRIPT_HOME, which is just the dir that ClojureScript in it.
 
 ```bash
 lein deps
-```
-
-In ./brepl make sure your CLOJURESCRIPT_HOME is set to wherever clojurescript is on your macine. Currently
-Brepl uses rlwrap to provide a much better repl experience, so make sure you have that installed.
-
-```bash
 ./brepl
 ```
 
