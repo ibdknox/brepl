@@ -1,12 +1,26 @@
 (function(window) {
 
+    // We have to override the way google's base library writes script tags
+    // currently it uses document.write, which will remove the content of the
+    // document every time it is called. This is unacceptable when using requires
+    // from the REPL
+    goog.writeScriptTag_ = function(src) {
+        if (goog.inHtmlDocument_()) {
+            var doc = goog.global.document;
+            var scriptTag = document.createElement("script");
+            scriptTag.setAttribute("type", "text/javascript")
+            scriptTag.setAttribute("src", src);
+            doc.head.appendChild(scriptTag);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     var socket = new io.Socket("localhost", {port: "9090", transports: ['websocket','xhr-polling'], rememberTransport: true, connectTimeout: false });
     socket.on("message", function(data) {
         var retVal = eval(data);
         console.log(retVal);
-        //if(retVal) retVal = retVal.toString();
-        //if(retVal && retVal.length > 100) retVal = retVal.substring(0, 100);
-        //socket.send(retVal);
     });
     socket.on('connect', function() {
     });
