@@ -61,8 +61,7 @@
     new-repl-env))
 
 (defn execute-repl [repl-env verbose warn-on-undeclared]
-  (prn "Repl connected. Let's do this.")
-  (prn "Type: " :cljs/quit " to quit")
+  (println "Repl connected. Let's do this.")
   (binding [*cljs-ns* 'cljs.user
             *cljs-verbose* verbose
             *cljs-warn-on-undeclared* warn-on-undeclared]
@@ -71,7 +70,7 @@
       (browser-eval1 repl-env (assoc env :ns (@namespaces *cljs-ns*))
              '(ns cljs.user))
       (loop []
-        (print (str "ClojureScript:" *cljs-ns* "> "))
+        (print (str "brepl :: " *cljs-ns* " :: "))
         (flush)
         (let [form (read)]
           (cond
@@ -86,7 +85,11 @@
             (do (println @namespaces) (newline) (recur))
 
             (and (seq? form) (= (first form) 'require))
-            (do (browser-require (second form)) (recur))
+            (let [req (second form)
+                  req (if (vector? req)
+                          req
+                          (second req))]
+              (do (browser-require req) (recur)))
 
            (and (seq? form) ('#{load-file clojure.core/load-file} (first form)))
            (do (load-file repl-env (second form)) (newline) (recur))

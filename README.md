@@ -8,7 +8,8 @@ The Clojure Script browser repl.
 lein deps
 ```
 
-In ./brepl make sure your CLOJURESCRIPT_HOME is set to wherever clojurescript is on your macine.
+In ./brepl make sure your CLOJURESCRIPT_HOME is set to wherever clojurescript is on your macine. Currently
+Brepl uses rlwrap to provide a much better repl experience, so make sure you have that installed.
 
 ```bash
 ./brepl
