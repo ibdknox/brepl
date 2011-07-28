@@ -1,6 +1,8 @@
 # Brepl
 
-The Clojure Script browser repl.
+The Clojure Script REPL that uses a running browser as its execution context. This lets you run ClojureScript code to drive the browser...
+
+Let the dom appending begin!
 
 ## Requirements
 
