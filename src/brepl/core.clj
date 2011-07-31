@@ -5,12 +5,14 @@
             [clojure.java.io :as io]
             [clojure.string :as string]))
 
+(declare ^:dynamic *cljs-classpath*)
+
+
 (defn browser-eval1
   [repl-env env form]
   (try
-    (let [ast (analyze env form)
-          js (emits ast)]
-          (server/send-js js))
+    (let [ast (analyze env form)]
+      (server/send-js (emits ast)))
     (catch Throwable ex
       (.printStackTrace ex)
       (println (str ex)))))
@@ -38,68 +40,69 @@
         parts (string/split ns-str #"\.")]
     (str (string/join #"/"  parts) ".cljs")))
 
-(defn local-require [classpath ns-sym]
-  (let [f (when classpath
-            (io/file classpath (ns->path ns-sym)))
+(defn local-require [ns-sym]
+  (let [f (when *cljs-classpath*
+            (io/file *cljs-classpath* (ns->path ns-sym)))
         exists? (. f exists)]
     (when exists?
       (browser-load-stream repl-env f))))
 
-(defn browser-require [classpath [ns-sym _ ns-alias]]
+(defn browser-require [[ns-sym _ ns-alias]]
   (let [prev-ns *cljs-ns*]
     (swap! namespaces assoc-in [*cljs-ns* :requires ns-alias] ns-sym)
-    (when-not (local-require classpath ns-sym)
+    (when-not (local-require ns-sym)
       (server/send-js (str "goog.require(\"" (name ns-sym) "\")")))
     (set! *cljs-ns* prev-ns)))
 
-(defn try-read []
-  (try
-    (read)
-    (catch Throwable ex
-      (.printStackTrace ex)
-      (println (str ex)))))
-
-(defn execute-repl [{:keys [classpath]} verbose warn-on-undeclared]
-  (println "Repl connected. Let's do this.")
-  (binding [*cljs-ns* 'cljs.user
-            *cljs-verbose* verbose
-            *cljs-warn-on-undeclared* warn-on-undeclared]
-    (let [env {:context :statement :locals {}}]
-      (browser-load-file repl-env "cljs/core.cljs")
-      (browser-eval1 repl-env (assoc env :ns (@namespaces *cljs-ns*))
-             '(ns cljs.user))
-      (loop []
-        (print (str "brepl :: " *cljs-ns* " :: "))
-        (flush)
-        (let [form (try-read)]
+(defn handle-form [repl-env env form]
           (cond
-            (nil? form) (recur)
+            (nil? form) nil
 
             (= form :cljs/quit) (do 
                                   (server/stop-repl-server)
                                   :quit)
 
             (and (seq? form) (= (first form) 'in-ns))
-            (do (set! *cljs-ns* (second (second form))) (newline) (recur))
+            (do (set! *cljs-ns* (second (second form))) (newline))
 
             (and (seq? form) (= (first form) 'list-ns))
-            (do (println @namespaces) (newline) (recur))
+            (do (println @namespaces) (newline))
 
             (and (seq? form) (= (first form) 'require))
             (let [req (second form)
                   req (if (vector? req)
                         req
                         (second req))]
-              (do (browser-require classpath req) (recur)))
+              (do (browser-require req)))
 
             (and (seq? form) ('#{load-file clojure.core/load-file} (first form)))
-            (do (load-file repl-env (second form)) (newline) (recur))
+            (do (load-file repl-env (second form)) (newline))
 
             :else
             (let [ret (browser-eval1 repl-env
                                      (assoc env :ns (@namespaces *cljs-ns*))
-                                     form)]
-              (recur))))))))
+                                     form)])))
+
+(defn execute-repl [{:keys [classpath]} verbose warn-on-undeclared]
+  (println "Repl connected. Let's do this.")
+  (binding [*cljs-ns* 'cljs.user
+            *cljs-verbose* verbose
+            *cljs-warn-on-undeclared* warn-on-undeclared
+            *cljs-classpath* classpath]
+    (let [env {:context :statement :locals {}}]
+      (browser-load-file repl-env "cljs/core.cljs")
+      (browser-eval1 repl-env (assoc env :ns (@namespaces *cljs-ns*))
+                     '(ns cljs.user))
+      (loop []
+        (print (str "brepl :: " *cljs-ns* " :: "))
+        (flush)
+        (try
+          (let [form (read)]
+            (handle-form repl-env env form))
+          (catch Throwable ex
+            (.printStackTrace ex)
+            (println (str ex))))
+        (recur)))))
 
 (defn browser-repl
   "Note - repl will reload core.cljs every time, even if supplied old repl-env"
