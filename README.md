@@ -15,7 +15,7 @@ Edit ./brepl to set your CLOJURESCRIPT_HOME, which is just the dir that ClojureS
 
 ```bash
 lein deps
-./brepl
+./brepl /path/to/cljs/src/
 ```
 
 Then just open the included index.html in a browser that supports websockets (only tested in chrome so far).
