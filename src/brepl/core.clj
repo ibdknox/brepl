@@ -37,7 +37,6 @@
                               :env env})]
     (when-not (false? result)
       (when result
-        (println result)
         (server/send-js result))
       true)))
 
