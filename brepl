@@ -2,7 +2,7 @@
 export CLOJURESCRIPT_HOME=/users/chris/repos/clojurescript/
 BREAK_CHARS="(){}[],^%$#@\"\";:''|\\"
 
-rlwrap -r -c -b $BREAK_CHARS script/cljbrepl
+rlwrap -r -c -b $BREAK_CHARS script/cljbrepl $1
 
 
 

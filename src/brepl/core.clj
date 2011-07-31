@@ -31,14 +31,26 @@
   (binding [*cljs-ns* 'cljs.user]
     (let [res (if (= \/ (first f)) f (io/resource f))]
       (assert res (str "Can't find " f " in classpath"))
-      ;;TODO: send a script tag?
-      ;;(.put ^javax.script.ScriptEngine (:jse repl-env)
-      ;;      javax.script.ScriptEngine/FILENAME f)
       (browser-load-stream repl-env res))))
 
-(defn browser-require [[goog-ns _ ns-alias]]
-  (swap! namespaces assoc-in [*cljs-ns* :requires ns-alias] goog-ns)
-  (server/send-js (str "goog.require(\"" (name goog-ns) "\")")))
+(defn ns->path [ns-sym]
+  (let [ns-str (name ns-sym)
+        parts (string/split ns-str #"\.")]
+    (str (string/join #"/"  parts) ".cljs")))
+
+(defn local-require [classpath ns-sym]
+  (let [f (when classpath
+            (io/file classpath (ns->path ns-sym)))
+        exists? (. f exists)]
+    (when exists?
+      (browser-load-stream repl-env f))))
+
+(defn browser-require [classpath [ns-sym _ ns-alias]]
+  (let [prev-ns *cljs-ns*]
+    (swap! namespaces assoc-in [*cljs-ns* :requires ns-alias] ns-sym)
+    (when-not (local-require classpath ns-sym)
+      (server/send-js (str "goog.require(\"" (name ns-sym) "\")")))
+    (set! *cljs-ns* prev-ns)))
 
 (defn try-read []
   (try
@@ -47,7 +59,7 @@
       (.printStackTrace ex)
       (println (str ex)))))
 
-(defn execute-repl [repl-env verbose warn-on-undeclared]
+(defn execute-repl [{:keys [classpath]} verbose warn-on-undeclared]
   (println "Repl connected. Let's do this.")
   (binding [*cljs-ns* 'cljs.user
             *cljs-verbose* verbose
@@ -78,7 +90,7 @@
                   req (if (vector? req)
                         req
                         (second req))]
-              (do (browser-require req) (recur)))
+              (do (browser-require classpath req) (recur)))
 
             (and (seq? form) ('#{load-file clojure.core/load-file} (first form)))
             (do (load-file repl-env (second form)) (newline) (recur))

@@ -20,6 +20,9 @@
     var socket = new io.Socket("localhost", {port: "9090", transports: ['websocket','xhr-polling'], rememberTransport: true, connectTimeout: false });
     socket.on("message", function(data) {
         var retVal = eval(data);
+        if(cljs.core.pr_str) {
+            retVal = cljs.core.pr_str(retVal);
+        }
         console.log(retVal);
     });
     socket.on('connect', function() {
