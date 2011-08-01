@@ -15,16 +15,18 @@ Edit ./brepl to set your CLOJURESCRIPT_HOME, which is just the dir that ClojureS
 
 ```bash
 lein deps
-./brepl /path/to/cljs/src/
+./brepl
 ```
+
 
 Then just open the included index.html in a browser that supports websockets (only tested in chrome so far).
 Results are printed to the browser's console, so make sure you have it open.
 
 ## Notes
 
-ClojureScript doesn't have a (require) function in cljs.core, so I've implemented one for brepl, which I can't
-guarantee will act the same as (ns some-ns (:require ...)), though I haven't seen any differences.
+* ClojureScript doesn't have a (require) function in cljs.core, so I've implemented one for brepl, which I can't guarantee will act the same as (ns some-ns (:require ...)), though I haven't seen any differences.
+* Assuming your project follows the standard clj directory structure of proj/src/ns/file.cljs, if you run brepl from the root dir of your project, it will add all of those files to the brepl classpath and load them when you do requires.
+* You can now put the brepl dir on your classpath and call brepl from any directory
 
 ## License
 
