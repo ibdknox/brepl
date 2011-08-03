@@ -5,7 +5,8 @@ cd $(dirname "${0}")
 export BREPL_DIR=$(pwd -P)
 cd $startdir
 
-export CLOJURESCRIPT_HOME=/users/chris/repos/clojurescript
+#FIXME: if you don't have $CLOJURESCRIPT_HOME set, uncommen the next line.
+#export CLOJURESCRIPT_HOME=/path/to/clojurescript
 BREAK_CHARS="(){}[],^%$#@\"\";:''|\\"
 
 rlwrap -r -c -b $BREAK_CHARS "${BREPL_DIR}/script/cljbrepl" "$startdir/src"

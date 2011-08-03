@@ -11,7 +11,8 @@ Let the dom appending begin!
 
 ## Usage
 
-Edit ./brepl to set your CLOJURESCRIPT_HOME, which is just the dir that has ClojureScript in it.
+You have to have an environment variable set for CLOJURESCRIPT_HOME, If you don't already have 
+it setup, you can edit ./brepl and uncomment the export line.
 
 ```bash
 lein deps
