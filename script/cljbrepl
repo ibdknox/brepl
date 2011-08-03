@@ -6,6 +6,6 @@ CLJS_CLJS=$CLOJURESCRIPT_HOME/src/cljs
 BREPL_SRC=$BREPL_DIR/src/
 BREPL_LIB=$BREPL_DIR/lib/*
 
-java -server -Xmx2G -Xms2G -Xmn256m -cp "${CLJS_LIB}:${CLJS_SRC}:${CLJS_CLJS}:${BREPL_SRC}:${BREPL_LIB}" clojure.main -e \
+java -server -Xmx2G -Xms2G -Xmn256m -cp "${CLJS_LIB}:${CLJS_SRC}:${CLJS_CLJS}:${BREPL_SRC}:${BREPL_LIB}:$1" clojure.main -e \
 "(require '[brepl.core :as brepl])
 (brepl/browser-repl {:classpath \"$1\"})" 

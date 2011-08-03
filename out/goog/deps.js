@@ -688,3 +688,8 @@ goog.addDependency('../goog-ext/mochikit/async/deferredlist.js', ['goog.async.De
 goog.addDependency('../goog-ext/osapi/osapi.js', ['goog.osapi'], []);
 goog.addDependency('../goog-ext/silverlight/silverlight.js', ['goog.silverlight'], []);
 goog.addDependency('../goog-ext/silverlight/supporteduseragent.js', ['goog.silverlight.supportedUserAgent'], []);
+
+/* CLOJURE DEPS */
+goog.addDependency("../clojure/set.js", ['clojure.set'], ['cljs.core']);
+goog.addDependency("../clojure/string.js", ['clojure.string'], ['cljs.core', 'goog.string', 'goog.string.StringBuffer']);
+

@@ -43,7 +43,8 @@
 (defn browser-eval1
   [repl-env env form]
   (try
-    (when-not (browser-handles? env form)
+    (when-not (and (seq? form) 
+                   (browser-handles? env form))
       (let [ast (analyze env form)]
         (server/send-js (emits ast))))
     (catch Throwable ex
