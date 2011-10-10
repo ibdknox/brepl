@@ -1,3 +1,5 @@
+# Brepl is no longer needed, check out the browser repl included with ClojureScript itself :)
+
 # Brepl
 
 The Clojure Script REPL that uses a running browser as its execution context. This lets you run ClojureScript code to drive the browser...
